@@ -1,6 +1,26 @@
-from simple_agent_mujoco import *
+from core.base_environment import *
 import numpy as np
 from pyhelper_fns import vis_utils
+
+def str2action(cmd):
+  cmd = cmd.strip()
+  if cmd == 'w':
+    #up
+    ctrl = [0, 0.1]
+  elif cmd == 'a':
+    #left
+    ctrl = [-0.1, 0]
+  elif cmd == 'd':
+    #right
+    ctrl = [0.1, 0]
+  elif cmd == 's':
+    #down
+    ctrl = [0, -0.1]
+  else:
+    return None
+  ctrl = np.array(ctrl).reshape((2,))
+  return ctrl 
+    
 
 class MoveTeleportSimulator(BaseSimulator):
   def __init__(self, **kwargs):
@@ -19,6 +39,9 @@ class MoveTeleportSimulator(BaseSimulator):
 
   def action_ndim(self):
     return 2
+
+  def object_names(self):
+    return self._pos.keys()
 
   def _dist(self, x, y):
     dist = x - y
@@ -60,30 +83,43 @@ class MoveTeleportSimulator(BaseSimulator):
   def get_image(self):
     imSz = self._imSz
     rng = np.linspace(self._range_min, self._range_max, imSz)
+    g_x, g_y = self._get_bin(rng, self._pos['goal'])
     m_x, m_y = self._get_bin(rng, self._pos['manipulator'])
     o_x, o_y = self._get_bin(rng, self._pos['object'])
     self._im = np.zeros((imSz, imSz, 3), dtype=np.uint8)      
-    self._plot_object(self._pos['object'], 'r')
-    self._plot_object(self._pos['goal'], 'g')
-    self._plot_object(self._pos['manipulator'], 'b')
-     
+    self._plot_object((o_x, o_y), 'r')
+    self._plot_object((g_x, g_y), 'g')
+    self._plot_object((m_x, m_y), 'b')
 
-class MoveTeleportObsState(BaseObservation):
+  
+  def _setup_render(self):
+    self._canvas = vis_utils.MyAnimation(None, height=self._imSz, width=self._imSz)
+    
+  
+  def render(self):
+    self._canvas._display(self.get_image())
+
+  
+class InitFixed(BaseInitializer):
+  def sample_env_init(self):
+    self.simulator._pos['goal'] = np.array([0.5, 0.5])
+    self.simulator._pos['object'] = np.array([-0.7, -0.5])
+    self.simulator._pos['manipulator'] = np.array([-0.9, -0.6])     
+
+ 
+class InitRandom(BaseInitializer):
+  def sample_env_init(self):
+    range_mag = self.simulator._range_max - self.simulator._range_min
+    for k in self.simulator._pos.keys():
+      self.simulator._pos[k] = range_mag * self.random.rand() - \
+                               self.simulator._range_min
+
+
+class ObsState(BaseObservation):
   def ndim(self):
     dim = {}
     dim['feat'] = 6
-
-  def observation(self):
-    obs = np.zeros((6,))
-    for i, k in enumerate(self.simulator._pos.keys()):
-      obs[2*i, 2*i + 2] = self.simulator._pos[k].copy()
-    return obs
-
-
-class MoveTeleportObsState(BaseObservation):
-  def ndim(self):
-    dim = {}
-    dim['feat'] = 6
+    return dim
 
   def observation(self):
     obs = np.zeros((6,))
@@ -92,10 +128,33 @@ class MoveTeleportObsState(BaseObservation):
     return obs
   
  
-class MoveTeleportObsIm(BaseObservation):
+class ObsIm(BaseObservation):
   def ndim(self):
     dim = {}
     dim['im'] = (self.simulator._imSz, self.simulator._imSz, 3)
+    return dim
 
   def observation(self):
     return self.simulator.get_image()
+
+
+class RewardSimple(BaseRewarder):
+  #The radius around the goal in which reward is provided to the agent.
+  @property
+  def radius(self):
+    return self.prms['radius'] is hasattr(self.prms, 'radius') else 0.2
+ 
+  def get(self):
+    if self.simulator.dist_goal_object() < self.radius():
+      return 1
+    else:
+      return 0 
+ 
+
+def get_environment(initName='InitFixed', obsName='ObsIm', rewName='RewardSimple',
+                    initPrms={}, obsPrms={}, rewPrms={}):
+ 
+  initObj = vars()[initName](MoveTeleportSimulator, initPrms)
+  obsObj  = vars()[obsName](MoveTeleportSimulator, obsPrms)
+  rewObj  = vars()[rewName](MoveTeleportSimulator, rewPrms)
+  env     = BaseEnvironment(MoveTeleportSimulator, initObj, obsObj, rewObj)

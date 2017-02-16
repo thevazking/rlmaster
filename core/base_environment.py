@@ -2,29 +2,31 @@ import copy
 import numpy as np
 import os
 from os import path as osp
-import vis_utils as vu
+from pyhelper_fns import vis_utils as vu
 from pyhelper_fns import check_utils
 
 from mujoco_py_wrapper.mujoco_agents.config import AGENT_MUJOCO
 from mujoco_py_wrapper import mujoco_py as mjcpy
 
 class BaseObject(object):
-  def __init__(self, env, prms=None):
-    self._env  = env
+  def __init__(self, simulator, prms={}):
+    self._simulator  = simulator
     self._prms = prms
 
   @property
-  def env(self):
-    return env
+  def simulator(self):
+    return self._simulator
 
   @property
-  def prms(self)
-    return prms
+  def prms(self):
+    return self._prms
 
   def get(self):
     raise NotImplementedError
     
 
+##
+#Base class for defining the observation that the agent receives
 class BaseObservation(BaseObject):
   def spec(self):
     """
@@ -48,9 +50,13 @@ class BaseObservation(BaseObject):
     """
     pass
 
+
+##
+#Base class for defining how the environment should be initialized at every
+#episode
 class BaseInitializer(BaseObject):
-  def __init__(self, env, **kwargs):
-    super(BaseObject, env).__init__(env, **kwargs)
+  def __init__(self, simulator, **kwargs):
+    super(BaseObject, simulator).__init__(env, **kwargs)
     seed = self.prms['randomSeed'] if hasattr(self.prms, 'randomSeed') else 3
     self._random = np.random.RandomState(seed)
 
@@ -61,10 +67,15 @@ class BaseInitializer(BaseObject):
   def sample_env_init(self):
     pass
 
+
+##
+#Base class for defining reward functions.
 class BaseRewarder(BaseObject):
   pass 
 
 
+##
+#Base class for defining environment simulation.
 class BaseSimulator(object):
   """
   Setup the object that simulates the environment (for eg: the physics engine.)
@@ -81,21 +92,39 @@ class BaseSimulator(object):
   def is_render(self, is_render):
     self._isRender = render
 
+
+  def action_ndim(self):
+    raise NotImplementedError
+
+
   def _setup_world(self):
-    pass 
+    pass
 
   def step(self, ctrl):
-    pass
+    raise NotImplementedError
+
 
   def step_by_n(self, N, ctrl):
     for n in range(N):
       self.step(ctrl)
 
+
+  def _setup_renderer(self):
+    """
+    Setup the renderer
+    """
+    raise NotImplementedError
+
+
   def render(self):
-    pass
+    """
+    create the rendering of the environment 
+    """
+    raise NotImplementedError
+
 
   def get_image(self):
-    pass
+    raise NotImplementedError
 
 
 class BaseEnvironment(object):
@@ -122,49 +151,57 @@ class BaseEnvironment(object):
   def initializer(self):
     return self._initializer
 
+
   def action_ndim(self):
     """
     Return the dimensionality of the actions
     """
-    pass
+    raise NotImplementedError
 
-  def step(self, ctrl):
-    """
-    Step the simulator by 1 step using ctrl command
-    """
-    self._sim.step(self, ctrl)
-
-  def step_by_n(self, N, ctrl):
-    """
-    Step the simulator by N time steps
-    """
-    self._sim.step_by_n(self, ctrl)
-
-  def observation(self):
-    """
-    Observe the environment's state
-    """ 
-    return self._observer.observation()
-
-  def observation_ndim(self):
-    """
-    Dimensionality of observation
-    """ 
-    return self._observer.observation_ndim()
 
   def reset(self):
     """
     Reset the environment
     """
-    self._initializer.sample_env_init() 
+    self.initializer.sample_env_init() 
+
+
+  def step(self, ctrl):
+    """
+    Step the simulator by 1 step using ctrl command
+    """
+    self.simulator.step(self, ctrl)
+
+
+  def step_by_n(self, N, ctrl):
+    """
+    Step the simulator by N time steps
+    """
+    self.simulator.step_by_n(self, ctrl)
+
+
+  def observation(self):
+    """
+    Observe the environment's state
+    """ 
+    return self.observer.observation()
+
+
+  def observation_ndim(self):
+    """
+    Dimensionality of observation
+    """ 
+    return self.observer.ndim()
+
 
   def reward(self):
     """
     Return the reward
     """
-    return self._rewarder.get()
+    return self.rewarder.get()
 
-  def interactive(self, str2action):
+
+  def interactive(self, str2action, actionRepeat=None):
     """
     Interact with the environment
     Args:
@@ -181,7 +218,10 @@ class BaseEnvironment(object):
         if ctrl is None:
           continue
         else:
-          self.step_by_n(5, ctrl)
+          if actionRepeat is None:
+            self.step(ctrl)
+          else:
+            self.step_by_n(actionRepeat, ctrl)
       self.render()
 
 
