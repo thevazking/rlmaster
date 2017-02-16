@@ -56,16 +56,23 @@ class MoveTeleportSimulator(BaseSimulator):
    
   def _clip(self, val):
     val = np.clip(val, self._range_min, self._range_max)
+    return val
 
   def step(self, ctrl):
+    #print (ctrl)
+    #print (self._pos['manipulator'])
     self._pos['manipulator'] += ctrl.reshape((2,))
-    self._clip(self._pos['manipulator']) 
+    self._pos['manipulator'] = self._clip(self._pos['manipulator']) 
     if self.dist_manipulator_object() < self._manipulate_radius:
       self._pos['object'] = self._pos['manipulator'].copy()  
  
   def _get_bin(self, rng, coords):
-    x = np.where(rng < coords[0])[0][-1]
-    y = np.where(rng < coords[0])[0][-1]        
+    try:
+      x = np.where(rng <= coords[0])[0][-1]
+      y = np.where(rng <= coords[1])[0][-1]       
+    except:
+      print (coords)
+      raise Exception('Something is incorrect') 
     return x, y
 
   def _plot_object(self, coords, color='r'):
@@ -90,11 +97,12 @@ class MoveTeleportSimulator(BaseSimulator):
     self._plot_object((o_x, o_y), 'r')
     self._plot_object((g_x, g_y), 'g')
     self._plot_object((m_x, m_y), 'b')
+    return self._im.copy()
 
-  
-  def _setup_render(self):
+ 
+  def _setup_renderer(self):
     self._canvas = vis_utils.MyAnimation(None, height=self._imSz, width=self._imSz)
-    
+
   
   def render(self):
     self._canvas._display(self.get_image())
@@ -111,7 +119,7 @@ class InitRandom(BaseInitializer):
   def sample_env_init(self):
     range_mag = self.simulator._range_max - self.simulator._range_min
     for k in self.simulator._pos.keys():
-      self.simulator._pos[k] = range_mag * self.random.rand() - \
+      self.simulator._pos[k] = range_mag * self.random.rand(2,) + \
                                self.simulator._range_min
 
 
@@ -142,19 +150,21 @@ class RewardSimple(BaseRewarder):
   #The radius around the goal in which reward is provided to the agent.
   @property
   def radius(self):
-    return self.prms['radius'] is hasattr(self.prms, 'radius') else 0.2
+    return self.prms['radius'] if hasattr(self.prms, 'radius') else 0.2
  
   def get(self):
-    if self.simulator.dist_goal_object() < self.radius():
+    if self.simulator.dist_object_goal() < self.radius:
       return 1
     else:
       return 0 
  
 
-def get_environment(initName='InitFixed', obsName='ObsIm', rewName='RewardSimple',
+def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimple',
                     initPrms={}, obsPrms={}, rewPrms={}):
- 
-  initObj = vars()[initName](MoveTeleportSimulator, initPrms)
-  obsObj  = vars()[obsName](MoveTeleportSimulator, obsPrms)
-  rewObj  = vars()[rewName](MoveTeleportSimulator, rewPrms)
-  env     = BaseEnvironment(MoveTeleportSimulator, initObj, obsObj, rewObj)
+
+  sim     = MoveTeleportSimulator()
+  initObj = globals()[initName](sim, initPrms)
+  obsObj  = globals()[obsName](sim, obsPrms)
+  rewObj  = globals()[rewName](sim, rewPrms)
+  env     = BaseEnvironment(sim, initObj, obsObj, rewObj)
+  return env

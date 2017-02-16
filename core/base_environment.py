@@ -55,8 +55,8 @@ class BaseObservation(BaseObject):
 #Base class for defining how the environment should be initialized at every
 #episode
 class BaseInitializer(BaseObject):
-  def __init__(self, simulator, **kwargs):
-    super(BaseObject, simulator).__init__(env, **kwargs)
+  def __init__(self, simulator, prms={}):
+    super(BaseInitializer, self).__init__(simulator, prms=prms)
     seed = self.prms['randomSeed'] if hasattr(self.prms, 'randomSeed') else 3
     self._random = np.random.RandomState(seed)
 
@@ -65,7 +65,7 @@ class BaseInitializer(BaseObject):
     return self._random
 
   def sample_env_init(self):
-    pass
+    raise NotImplementedError
 
 
 ##
@@ -133,7 +133,8 @@ class BaseEnvironment(object):
     self._initializer = initializer
     self._observer    = observer
     self._rewarder    = rewarder
-    self.params      = params 
+    self.params       = params 
+    self.reset()
 
   @property
   def simulator(self):
@@ -156,7 +157,7 @@ class BaseEnvironment(object):
     """
     Return the dimensionality of the actions
     """
-    raise NotImplementedError
+    return self.simulator.action_ndim()
 
 
   def reset(self):
@@ -170,14 +171,14 @@ class BaseEnvironment(object):
     """
     Step the simulator by 1 step using ctrl command
     """
-    self.simulator.step(self, ctrl)
+    self.simulator.step(ctrl)
 
 
   def step_by_n(self, N, ctrl):
     """
     Step the simulator by N time steps
     """
-    self.simulator.step_by_n(self, ctrl)
+    self.simulator.step_by_n(ctrl)
 
 
   def observation(self):
@@ -201,6 +202,20 @@ class BaseEnvironment(object):
     return self.rewarder.get()
 
 
+  def setup_renderer(self):
+    """
+    Setup the rendering mechanism
+    """
+    self.simulator._setup_renderer()
+
+
+  def render(self):
+    """
+    Render the environment
+    """
+    self.simulator.render()
+
+
   def interactive(self, str2action, actionRepeat=None):
     """
     Interact with the environment
@@ -213,6 +228,8 @@ class BaseEnvironment(object):
       ip      = raw_input()
       if ip == 'q':
         break
+      elif ip == 'reset':
+        self.reset()
       else:
         ctrl = str2action(ip)
         if ctrl is None:
