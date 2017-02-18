@@ -130,7 +130,8 @@ class ObsState(BaseObservation):
     return dim
 
   def observation(self):
-    obs = np.zeros((6,))
+    obs = {}
+    obs['feat'] = np.zeros((6,))
     for i, k in enumerate(self.simulator._pos.keys()):
       obs[2*i, 2*i + 2] = self.simulator._pos[k].copy()
     return obs
@@ -143,7 +144,9 @@ class ObsIm(BaseObservation):
     return dim
 
   def observation(self):
-    return self.simulator.get_image()
+    obs = {}
+    obs['im'] =  self.simulator.get_image()
+    return obs
 
 
 class RewardSimple(BaseRewarder):
