@@ -73,6 +73,49 @@ class BaseInitializer(BaseObject):
 class BaseRewarder(BaseObject):
   pass 
 
+##
+#BaseAction class
+class BaseAction(object):
+  def __init__(self, prms={}):
+    self._prms = prms
+    
+  def action_dim(self):
+    """
+    Returns:
+      The dimensionality of the input action 
+      eg: for 1 out N discrete action, action_dim=1
+          if there are 3 joint angles, action_dim=3
+      
+    """
+    raise NotImplementedError
+
+  def num_actions(self):
+    """
+    Returns:
+      Number of different possible actions
+      eg: for 1 out N discrete action, num_actions=3
+          if there are 3 joint angles, num_actions=1
+    """
+    raise NotImplementedError
+
+  #Process the action as needed
+  def process(self, action):
+    """
+    Args:
+      action: input from the agent
+    """
+    raise NotImplementedError
+
+
+class BaseDiscreteAction(BaseAction):
+  def action_dim(self):
+    return 1
+
+
+class BaseContinuousAction(BaseAction):
+  def num_actions(self):
+    return 1
+  
 
 ##
 #Base class for defining environment simulation.
@@ -92,22 +135,15 @@ class BaseSimulator(object):
   def is_render(self, is_render):
     self._isRender = render
 
-
-  def action_ndim(self):
-    raise NotImplementedError
-
-
   def _setup_world(self):
     pass
 
   def step(self, ctrl):
     raise NotImplementedError
 
-
   def step_by_n(self, N, ctrl):
     for n in range(N):
       self.step(ctrl)
-
 
   def _setup_renderer(self):
     """
@@ -115,24 +151,24 @@ class BaseSimulator(object):
     """
     raise NotImplementedError
 
-
   def render(self):
     """
     create the rendering of the environment 
     """
     raise NotImplementedError
 
-
   def get_image(self):
     raise NotImplementedError
 
 
 class BaseEnvironment(object):
-  def __init__(self, sim, initializer, observer, rewarder, params=None):
+  def __init__(self, sim, initializer, observer, rewarder,
+               action_processor, params=None):
     self._sim = sim
     self._initializer = initializer
     self._observer    = observer
     self._rewarder    = rewarder
+    self._action_processor = action_processor
     self.params       = params 
     self.reset()
 
@@ -152,12 +188,23 @@ class BaseEnvironment(object):
   def initializer(self):
     return self._initializer
 
+  @property
+  def action_processor(self):
+    return self._action_processor 
 
-  def action_ndim(self):
+
+  def action_dim(self):
     """
     Return the dimensionality of the actions
     """
-    return self.simulator.action_ndim()
+    return self.action_processor.action_dim()
+
+
+  def num_actions(self):
+    """
+    Return the number of possible actions
+    """
+    return self.action_processor.num_actions()
 
 
   def reset(self):
@@ -171,6 +218,7 @@ class BaseEnvironment(object):
     """
     Step the simulator by 1 step using ctrl command
     """
+    ctrl = self.action_processor.process(ctrl)
     self.simulator.step(ctrl)
 
 

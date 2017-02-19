@@ -1,5 +1,6 @@
 from core.base_environment import *
 import numpy as np
+from overrides import overrides
 from pyhelper_fns import vis_utils
 
 def str2action(cmd):
@@ -22,6 +23,43 @@ def str2action(cmd):
   return ctrl 
     
 
+class DiscreteActionFour(BaseDiscreteAction):
+  @overrides
+  def num_actions(self):
+    return 4
+
+  @overrides
+  def process(self, action):
+    assert len(action) == 1
+    assert action[0] in [0, 1, 2, 3]
+    if action[0] == 0:
+      #up
+      ctrl = [0, 0.1]
+    elif action[0] == 1:
+      #left
+      ctrl = [-0.1, 0]
+    elif action[0] == 2:
+      #right
+      ctrl = [0.1, 0]
+    elif action[0] == 3:
+      #down
+      ctrl = [0, -0.1]
+    else:
+      raise Exception('Action %s not recognized' % action)
+    ctrl = np.array(ctrl).reshape((2,))
+    return ctrl 
+ 
+
+class ContinuousAction(BaseContinuousAction):
+  @overrides
+  def action_dim(self):
+    return 2
+
+  @overrides
+  def process(self, action):
+    return action  
+
+
 class MoveTeleportSimulator(BaseSimulator):
   def __init__(self, **kwargs):
     self._pos = {}
@@ -36,9 +74,6 @@ class MoveTeleportSimulator(BaseSimulator):
     #Image size
     self._imSz = 64 
     self._im = np.zeros((self._imSz, self._imSz, 3), dtype=np.uint8)      
-
-  def action_ndim(self):
-    return 2
 
   def object_names(self):
     return self._pos.keys()
@@ -58,9 +93,8 @@ class MoveTeleportSimulator(BaseSimulator):
     val = np.clip(val, self._range_min, self._range_max)
     return val
 
+  @overrides
   def step(self, ctrl):
-    #print (ctrl)
-    #print (self._pos['manipulator'])
     self._pos['manipulator'] += ctrl.reshape((2,))
     self._pos['manipulator'] = self._clip(self._pos['manipulator']) 
     if self.dist_manipulator_object() < self._manipulate_radius:
@@ -86,7 +120,7 @@ class MoveTeleportSimulator(BaseSimulator):
     else:
       self._im[mny:mxy, mnx:mxx, 2] = 255
       
-    
+  @overrides 
   def get_image(self):
     imSz = self._imSz
     rng = np.linspace(self._range_min, self._range_max, imSz)
@@ -99,16 +133,17 @@ class MoveTeleportSimulator(BaseSimulator):
     self._plot_object((m_x, m_y), 'b')
     return self._im.copy()
 
- 
+  @overrides 
   def _setup_renderer(self):
     self._canvas = vis_utils.MyAnimation(None, height=self._imSz, width=self._imSz)
 
-  
+  @overrides
   def render(self):
     self._canvas._display(self.get_image())
 
   
 class InitFixed(BaseInitializer):
+  @overrides
   def sample_env_init(self):
     self.simulator._pos['goal'] = np.array([0.5, 0.5])
     self.simulator._pos['object'] = np.array([-0.7, -0.5])
@@ -116,6 +151,7 @@ class InitFixed(BaseInitializer):
 
  
 class InitRandom(BaseInitializer):
+  @overrides
   def sample_env_init(self):
     range_mag = self.simulator._range_max - self.simulator._range_min
     for k in self.simulator._pos.keys():
@@ -124,11 +160,13 @@ class InitRandom(BaseInitializer):
 
 
 class ObsState(BaseObservation):
+  @overrides
   def ndim(self):
     dim = {}
     dim['feat'] = 6
     return dim
 
+  @overrides
   def observation(self):
     obs = {}
     obs['feat'] = np.zeros((6,))
@@ -138,11 +176,13 @@ class ObsState(BaseObservation):
   
  
 class ObsIm(BaseObservation):
+  @overrides
   def ndim(self):
     dim = {}
     dim['im'] = (self.simulator._imSz, self.simulator._imSz, 3)
     return dim
 
+  @overrides
   def observation(self):
     obs = {}
     obs['im'] =  self.simulator.get_image()
@@ -154,7 +194,8 @@ class RewardSimple(BaseRewarder):
   @property
   def radius(self):
     return self.prms['radius'] if hasattr(self.prms, 'radius') else 0.2
- 
+
+  @overrides 
   def get(self):
     if self.simulator.dist_object_goal() < self.radius:
       return 1
@@ -163,11 +204,13 @@ class RewardSimple(BaseRewarder):
  
 
 def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimple',
-                    initPrms={}, obsPrms={}, rewPrms={}):
+                    actType='DiscreteActionFour',
+                    initPrms={}, obsPrms={}, rewPrms={}, actPrms={}):
 
   sim     = MoveTeleportSimulator()
   initObj = globals()[initName](sim, initPrms)
   obsObj  = globals()[obsName](sim, obsPrms)
   rewObj  = globals()[rewName](sim, rewPrms)
-  env     = BaseEnvironment(sim, initObj, obsObj, rewObj)
+  actObj  = globals()[actType](actPrms)
+  env     = BaseEnvironment(sim, initObj, obsObj, rewObj, actObj)
   return env
