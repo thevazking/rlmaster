@@ -62,6 +62,7 @@ class ContinuousAction(BaseContinuousAction):
 
 class MoveTeleportSimulator(BaseSimulator):
   def __init__(self, **kwargs):
+    super(MoveTeleportSimulator, self).__init__(**kwargs)
     self._pos = {}
     self._pos['manipulator'] = np.zeros((2,))
     self._pos['object']      = np.zeros((2,))

@@ -1,0 +1,42 @@
+<mujoco model="linearparticle">
+    <compiler inertiafromgeom="true" angle="radian" coordinate="local" />
+    <option timestep="0.01" gravity="0 0 0" iterations="20" integrator="Euler" />
+    <default>
+        <joint limited="false" damping="1" />
+        <geom contype="2" conaffinity="1" condim="6" friction=".5 .1 .1" density="1000" margin="0.002" />
+    </default>
+
+    <worldbody>
+      <!-- Arena -->
+      <geom conaffinity="0" contype="0" name="ground" pos="0 0 0" rgba="0.9 0.9 0.9 1" size="1 1 10" type="plane"/>
+      <geom conaffinity="1" fromto="-.3 -.3 .01 .3 -.3 .01" name="sideS" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+      <geom conaffinity="1" fromto=" .3 -.3 .01 .3  .3 .01" name="sideE" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+      <geom conaffinity="1" fromto="-.3  .3 .01 .3  .3 .01" name="sideN" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+      <geom conaffinity="1" fromto="-.3 -.3 .01 -.3 .3 .01" name="sideW" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+
+      <!-- Manipulator -->
+      <body name="particle" pos="0 0 0">
+        <geom name="particle_geom" type="sphere" size="0.03" rgba="0 0 1 1" contype="1" conaffinity="1"/>
+        <site name="particle_site" pos="0 0 0" size="0.01" />
+        <joint name="ball_x" type="slide" pos="0 0 0" axis="1 0 0" />
+        <joint name="ball_y" type="slide" pos="0 0 0" axis="0 1 0" />
+      </body>
+     
+      <!-- Target --> 
+      <body name="target" pos="0.2 0 0">
+        <geom name="target_geom" type="capsule" fromto="-0.01 0 0 0.01 0 0" size="0.02" rgba="0 1 0 1" contype="2" conaffinity="2"/>
+      </body>
+
+      <!-- Body which is moved -->
+      <body name="obs1" pos="-.2 -.2 0">
+        <geom name="obs1_geom" type="sphere" size="0.03" conaffinity="1" contype="1"/>
+        <joint name="obs1_x" type="slide" pos="0 0 0" axis="1 0 0" limited="true" range="-1 1" damping="5"/>
+        <joint name="obs1_y" type="slide" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" damping="5" />
+      </body>
+    </worldbody>
+
+    <actuator>
+        <motor joint="ball_x" ctrlrange="-1.0 1.0" ctrllimited="true"/>
+        <motor joint="ball_y" ctrlrange="-1.0 1.0" ctrllimited="true"/>
+    </actuator>
+</mujoco>
