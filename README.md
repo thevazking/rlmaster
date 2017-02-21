@@ -21,6 +21,16 @@ An environment is defined by:
                    by applying continous forces/torque, however the desired action space might be discrete or continuous. 
                    `BaseAction` objects allow the user to easily switch between different action spaces. 
                    
+
+##Environment in openAI gym format
+
+```
+from envs import move_agent
+from core import gym_wrapper
+env = move_agent.get_environment()
+gymEnv = gym_wwapper.GymWrapper(env)
+```
+                   
             
 
 
