@@ -142,10 +142,6 @@ class BaseSimulator(object):
   def step(self, ctrl):
     raise NotImplementedError
 
-  def step_by_n(self, N, ctrl):
-    for n in range(N):
-      self.step(ctrl)
-
   def _setup_renderer(self):
     """
     Setup the renderer
@@ -223,11 +219,12 @@ class BaseEnvironment(object):
     self.simulator.step(ctrl)
 
 
-  def step_by_n(self, N, ctrl):
+  def step_by_n(self, ctrl, N):
     """
     Step the simulator by N time steps
     """
-    self.simulator.step_by_n(ctrl)
+    for n in range(N):
+      self.step(ctrl)
 
 
   def observation(self):
@@ -263,6 +260,11 @@ class BaseEnvironment(object):
     Render the environment
     """
     self.simulator.render()
+
+
+  def step_nd_render(self, ctrl, N=1):
+    self.step_by_n(ctrl, N)
+    self.render() 
 
 
   def interactive(self, str2action, actionRepeat=None):

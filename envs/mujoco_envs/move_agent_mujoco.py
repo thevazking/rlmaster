@@ -13,19 +13,19 @@ def str2action(cmd):
   cmd = cmd.strip()
   if cmd == 'w':
     #up
-    ctrl = [0, 0.1]
+    ctrl = [0, 10]
   elif cmd == 'a':
     #left
-    ctrl = [-0.1, 0]
+    ctrl = [-10, 0]
   elif cmd == 'd':
     #right
-    ctrl = [0.1, 0]
+    ctrl = [10, 0]
   elif cmd == 's':
     #down
-    ctrl = [0, -0.1]
+    ctrl = [0, 10]
   else:
     return None
-  ctrl = np.array(ctrl).reshape((2,))
+  ctrl = 1000 * np.array(ctrl).reshape((2,))
   return ctrl 
 
 class InitFixed(BaseInitializer):
@@ -38,11 +38,7 @@ class InitFixed(BaseInitializer):
 class InitRandom(BaseInitializer):
   @overrides
   def sample_env_init(self):
-    range_mag = self.simulator._range_max - self.simulator._range_min
-    for k in self.simulator._pos.keys():
-      self.simulator._pos[k] = range_mag * self.random.rand(2,) + \
-                               self.simulator._range_min
-
+    pass
 
 class ObsState(BaseObservation):
   @overrides
@@ -95,7 +91,7 @@ class DiscreteActionFour(BaseDiscreteAction):
   @overrides
   def process(self, action):
     assert len(action) == 1
-    assert action[0] in [0, 1, 2, 3]
+    assert action[0] in [0, 1, 2, 3, 4]
     if action[0] == 0:
       #up
       ctrl = [0, 0.1]
@@ -108,6 +104,9 @@ class DiscreteActionFour(BaseDiscreteAction):
     elif action[0] == 3:
       #down
       ctrl = [0, -0.1]
+    elif action[0] == 4:
+      #no-op
+      ctrl = [0, 0]
     else:
       raise Exception('Action %s not recognized' % action)
     ctrl = np.array(ctrl).reshape((2,))
@@ -123,23 +122,19 @@ class ContinuousAction(BaseContinuousAction):
   def process(self, action):
     return action  
 
-
  
 class MoveTeleportMujocoSimulator(BaseMujoco):
   def __init__(self, **kwargs):
     super(MoveTeleportMujocoSimulator, self).__init__(**kwargs)
     self._pos = {}
-    self._pos['manipulator'] = np.zeros((2,))
-    self._pos['object']      = np.zeros((2,))
-    self._pos['goal']        = np.zeros((2,))
-    #Maximum and minimum locations of objects
-    self._range_min = -1
-    self._range_max = 1
-    #Manipulate radius
-    self._manipulate_radius = 0.2
-    #Image size
-    self._imSz = 64 
-    self._im = np.zeros((self._imSz, self._imSz, 3), dtype=np.uint8)      
+
+  def _setup_renderer(self):
+    if self.isRender:
+      super(MoveTeleportMujocoSimulator, self)._setup_renderer()
+      self.default_viewer.elevation = -90
+      self.default_viewer.cam_distance = 0.8 
+      self.default_viewer.cam.trackbodyid = -1
+      self.render()
 
   def object_names(self):
     return self._pos.keys()
@@ -159,11 +154,13 @@ class MoveTeleportMujocoSimulator(BaseMujoco):
   
 def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimple',
                     actType='DiscreteActionFour',
-                    initPrms={}, obsPrms={}, rewPrms={}, actPrms={}):
+                    initPrms={}, obsPrms={}, rewPrms={}, actPrms={}, imSz=64):
 
   simParams = {}
   simParams['xmlfile'] = osp.join(MODULE_PATH, 'xmls/mover.xml')
-  sim     = MoveTeleportMujocoSimulator(simParams=simParams)
+  simParams['image_width'] = imSz
+  simParams['image_height'] = imSz
+  sim     = MoveTeleportMujocoSimulator(simParams=simParams, isRender=True)
   initObj = globals()[initName](sim, initPrms)
   obsObj  = globals()[obsName](sim, obsPrms)
   rewObj  = globals()[rewName](sim, rewPrms)
