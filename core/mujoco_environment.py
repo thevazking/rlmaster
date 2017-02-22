@@ -107,17 +107,19 @@ class BaseMujoco(BaseSimulator):
       self._small_viewer.set_model(self._model)
       self.render()
 
+
   @overrides
   def render(self):
-    print ('I am here')
     self._small_viewer.render()
     self._small_viewer.loop_once()
+
 
   @overrides
   def step(self, ctrl=None):
     if ctrl is not None:
       self._model.data.ctrl = copy.deepcopy(ctrl)
     self.model.step()
+
 
   @overrides
   def get_image(self):
@@ -126,8 +128,10 @@ class BaseMujoco(BaseSimulator):
             (height, width, self.simParams['image_channels']))[::-1, :, :]
       return img
 
+
   def geom_name2id(self, geomName):
     return self.model.geom_names.index(geomName)
+
 
   def geom_xpos(self, geomName):
     """
@@ -138,6 +142,18 @@ class BaseMujoco(BaseSimulator):
     gid = self.geom_name2id()
     return self.model.data.geom_xpos[gid]
 
+
+  def set_body_pos(self, bodyName, pos):
+    """
+      Set the position of bodyName to pos
+    """
+    bid  = self.model.body_names.index(bodyName)
+    bpos = self.model.body_pos.copy()
+    assert pos.shape == (3,) or pos.shape==(1,3)
+    bpos[bid,:] = bpos
+    self.model.body_pos = bpos
+    self.model.forward()
+  
 
 def simple_test():
   hyperparams = {}

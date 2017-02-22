@@ -161,7 +161,7 @@ class BaseSimulator(object):
 class BaseEnvironment(object):
   def __init__(self, sim, initializer, observer, rewarder,
                action_processor, params=None):
-    self._sim = sim
+    self._simulator   = sim
     self._initializer = initializer
     self._observer    = observer
     self._rewarder    = rewarder
@@ -171,7 +171,7 @@ class BaseEnvironment(object):
 
   @property
   def simulator(self):
-    return self._sim
+    return self._simulator
 
   @property
   def observer(self):
