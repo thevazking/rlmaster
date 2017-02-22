@@ -15,9 +15,9 @@
       <geom conaffinity="1" fromto="-.3 -.3 .01 -.3 .3 .01" name="sideW" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
 
       <!-- Manipulator -->
-      <body name="particle" pos="0 0 0">
-        <geom name="particle_geom" type="sphere" size="0.03" rgba="0 0 1 1" contype="1" conaffinity="1"/>
-        <site name="particle_site" pos="0 0 0" size="0.01" />
+      <body name="manipulator" pos="0 0 0">
+        <geom name="manipulator_geom" type="sphere" size="0.03" rgba="0 0 1 1" contype="1" conaffinity="1"/>
+        <site name="manipulator_site" pos="0 0 0" size="0.01" />
         <joint name="ball_x" type="slide" pos="0 0 0" axis="1 0 0" />
         <joint name="ball_y" type="slide" pos="0 0 0" axis="0 1 0" />
       </body>
@@ -28,10 +28,10 @@
       </body>
 
       <!-- Body which is moved -->
-      <body name="obs1" pos="-.2 -.2 0">
-        <geom name="obs1_geom" type="sphere" size="0.03" conaffinity="1" contype="1"/>
-        <joint name="obs1_x" type="slide" pos="0 0 0" axis="1 0 0" limited="true" range="-1 1" damping="5"/>
-        <joint name="obs1_y" type="slide" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" damping="5" />
+      <body name="object" pos="-.2 -.2 0">
+        <geom name="object_geom" type="sphere" size="0.03" conaffinity="1" contype="1"/>
+        <joint name="object_x" type="slide" pos="0 0 0" axis="1 0 0" limited="true" range="-1 1" damping="5"/>
+        <joint name="object_y" type="slide" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" damping="5" />
       </body>
     </worldbody>
 

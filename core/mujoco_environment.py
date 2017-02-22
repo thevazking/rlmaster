@@ -126,28 +126,17 @@ class BaseMujoco(BaseSimulator):
             (height, width, self.simParams['image_channels']))[::-1, :, :]
       return img
 
-  def _names_from_adr(self, adr):
-    names = []
-    for i in range(len(adr)-1):
-      names.append(self.model.names[adr[i]:adr[i+1]-1]      
-    return names
+  def geom_name2id(self, geomName):
+    return self.model.geom_names.index(geomName)
 
-    return self._names_from_adr(self.model.name_geomadr) 
-
-  def interactive(self):
-    while True:
-      isValid = False
-      ip      = raw_input()
-      if ip == 'q':
-        break
-      else:
-        cmds = ip.split(',')
-        if not len(cmds) == 2:
-          continue
-        else:
-          ctrl = np.array([float(cmds[0]), float(cmds[1])])
-      self.step_by_n(5, ctrl)
-      self.render()
+  def geom_xpos(self, geomName):
+    """
+    position of a geom in global-coordinate frame
+    Args:
+      geomName: name of the geom
+    """
+    gid = self.geom_name2id()
+    return self.model.data.geom_xpos[gid]
 
 
 def simple_test():

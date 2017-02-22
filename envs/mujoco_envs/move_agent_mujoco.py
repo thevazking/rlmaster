@@ -51,16 +51,15 @@ class ObsState(BaseObservation):
   def observation(self):
     obs = {}
     obs['feat'] = np.zeros((6,))
-    for i, k in enumerate(self.simulator._pos.keys()):
-      obs[2*i, 2*i + 2] = self.simulator._pos[k].copy()
-    return obs
-  
+    raise NotImplementedError
  
 class ObsIm(BaseObservation):
   @overrides
   def ndim(self):
     dim = {}
-    dim['im'] = (self.simulator._imSz, self.simulator._imSz, 3)
+    dim['im'] = (self.simulator.simParam['image_height'],
+                 self.simulator.simParam['image_width'], 
+                 3)
     return dim
 
   @overrides
@@ -126,7 +125,6 @@ class ContinuousAction(BaseContinuousAction):
 class MoveTeleportMujocoSimulator(BaseMujoco):
   def __init__(self, **kwargs):
     super(MoveTeleportMujocoSimulator, self).__init__(**kwargs)
-    self._pos = {}
 
   def _setup_renderer(self):
     if self.isRender:
@@ -136,8 +134,8 @@ class MoveTeleportMujocoSimulator(BaseMujoco):
       self.default_viewer.cam.trackbodyid = -1
       self.render()
 
-  def object_names(self):
-    return self._pos.keys()
+  def geom_names(self):
+    return self.model.geom_names
 
   def _dist(self, x, y):
     dist = x - y
@@ -145,10 +143,12 @@ class MoveTeleportMujocoSimulator(BaseMujoco):
     return dist
 
   def dist_manipulator_object(self):
-    return self._dist(self._pos['manipulator'], self._pos['object'])
+    return self._dist(self.geom_xpos['manipulator_geom'], 
+                      self.geom_xpos['object_geom'])
 
   def dist_object_goal(self):
-    return self._dist(self._pos['object'], self._pos['goal']) 
+    return self._dist(self.geom_xpos['object_geom'], 
+                      self.geom_xpos['target_geom']) 
    
 
   
