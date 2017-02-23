@@ -150,10 +150,18 @@ class BaseMujoco(BaseSimulator):
     bid  = self.model.body_names.index(bodyName)
     bpos = self.model.body_pos.copy()
     assert pos.shape == (3,) or pos.shape==(1,3)
-    bpos[bid,:] = bpos
+    bpos[bid,:] = pos
     self.model.body_pos = bpos
     self.model.forward()
-  
+ 
+  def set_body_pos2D(self, bodyName, pos):
+    bid  = self.model.body_names.index(bodyName)
+    bpos = self.model.body_pos.copy()
+    assert pos.shape == (2,) or pos.shape==(1,2)
+    bpos[bid,0:2] = pos
+    self.model.body_pos = bpos
+    self.model.forward()
+
 
 def simple_test():
   hyperparams = {}

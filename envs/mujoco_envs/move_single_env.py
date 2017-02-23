@@ -13,7 +13,7 @@ def str2action(cmd):
   cmd = cmd.strip()
   if cmd == 'w':
     #up
-    ctrl = [0, 10]
+    ctrl = [0, 0.1]
   elif cmd == 'a':
     #left
     ctrl = [-10, 0]
@@ -28,17 +28,15 @@ def str2action(cmd):
   ctrl = 1000 * np.array(ctrl).reshape((2,))
   return ctrl 
 
-class InitFixed(BaseInitializer):
-  @overrides
-  def sample_env_init(self):
-    self.simulator._pos['goal'] = np.array([0.5, 0.5])
-    self.simulator._pos['object'] = np.array([-0.7, -0.5])
-    self.simulator._pos['manipulator'] = np.array([-0.9, -0.6])     
-
 class InitRandom(BaseInitializer):
   @overrides
   def sample_env_init(self):
-    pass
+    #Initialize all bodies within -0.25, 0.25
+    pos  = 0.50 * np.random.rand(3,2) - 0.25
+    keys = ['manipulator', 'target', 'object']  
+    for i, k in enumerate(keys):
+      self.simulator.set_body_pos2D(k, pos[i]) 
+
 
 class ObsState(BaseObservation):
   @overrides
@@ -73,7 +71,7 @@ class RewardSimple(BaseRewarder):
   #The radius around the goal in which reward is provided to the agent.
   @property
   def radius(self):
-    return self.prms['radius'] if hasattr(self.prms, 'radius') else 0.2
+    return self.prms['radius'] if hasattr(self.prms, 'radius') else 0.1
 
   @overrides 
   def get(self):
@@ -157,7 +155,7 @@ def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimpl
                     initPrms={}, obsPrms={}, rewPrms={}, actPrms={}, imSz=64):
 
   simParams = {}
-  simParams['xmlfile'] = osp.join(MODULE_PATH, 'xmls/mover.xml')
+  simParams['xmlfile'] = osp.join(MODULE_PATH, 'xmls/move_single.xml')
   simParams['image_width'] = imSz
   simParams['image_height'] = imSz
   sim     = MoveTeleportMujocoSimulator(simParams=simParams, isRender=True)
