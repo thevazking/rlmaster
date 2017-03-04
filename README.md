@@ -26,9 +26,10 @@ To run environments in interactive mode, a function mapping the keyboard inputs 
 
 ```
 from envs.mujoco_envs import move_single_env
-env = move_single_env.get_environment(imSz=480)
+env = move_single_env.get_environment(actType='ContinuousAction', imSz=480)
 env.interactive(move_single_env.str2action)
 ```
+You can use the commands, `w, s, d, a` to move the agent and `q` to quit the interactive mode.
 
                    
 
