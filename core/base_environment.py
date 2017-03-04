@@ -157,16 +157,22 @@ class BaseSimulator(object):
   def get_image(self):
     raise NotImplementedError
 
+BASE_ENV_PARAMS = {
+  'action_repeat': 1,
+  'max_episode_length': 100
+}
 
 class BaseEnvironment(object):
   def __init__(self, sim, initializer, observer, rewarder,
-               action_processor, params=None):
+               action_processor, params={}):
     self._simulator   = sim
     self._initializer = initializer
     self._observer    = observer
     self._rewarder    = rewarder
     self._action_processor = action_processor
-    self.params       = params 
+    self.params       = copy.deepcopy(BASE_ENV_PARAMS)
+    self.params.update(params)
+    self.stepCount    = 0
     self.reset()
 
   @property
@@ -209,14 +215,20 @@ class BaseEnvironment(object):
     Reset the environment
     """
     self.initializer.sample_env_init() 
+    self.stepCount = 0
 
 
   def step(self, ctrl):
     """
     Step the simulator by 1 step using ctrl command
     """
-    ctrl = self.action_processor.process(ctrl)
-    self.simulator.step(ctrl)
+    if self.stepCount <= self.params['max_episode_length']:
+      ctrl = self.action_processor.process(ctrl)
+      for n in range(self.params['action_repeat']):
+        self.simulator.step(ctrl)
+      self.stepCount += 1
+    else:
+      raise Exception('Maximum Episode Length exceeded')
 
 
   def step_by_n(self, ctrl, N):
