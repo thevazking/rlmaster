@@ -21,6 +21,16 @@ An environment is defined by:
                    by applying continous forces/torque, however the desired action space might be discrete or continuous. 
                    `BaseAction` objects allow the user to easily switch between different action spaces. 
                    
+### Interactive Mode
+To run environments in interactive mode, a function mapping the keyboard inputs into commands supplied to the agent must be defined. This function is typically called, `str2action` in `rlmaster` repository. The environment can be run in interactive mode in the following way:
+
+```
+from envs.mujoco_envs import move_single_env
+env = move_single_env.get_environment(imSz=480)
+env.interactive(move_single_env.str2action)
+```
+
+                   
 
 ##Environment in openAI gym format
 
