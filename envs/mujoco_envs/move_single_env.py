@@ -153,12 +153,12 @@ class MoveTeleportMujocoSimulator(BaseMujoco):
     return dist
 
   def dist_manipulator_object(self):
-    return self._dist(self.geom_xpos['manipulator_geom'], 
-                      self.geom_xpos['object_geom'])
+    return self._dist(self.geom_xpos('manipulator_geom'), 
+                      self.geom_xpos('object_geom'))
 
   def dist_object_goal(self):
-    return self._dist(self.geom_xpos['object_geom'], 
-                      self.geom_xpos['target_geom']) 
+    return self._dist(self.geom_xpos('object_geom'), 
+                      self.geom_xpos('target_geom')) 
    
 
   

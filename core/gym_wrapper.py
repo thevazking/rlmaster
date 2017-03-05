@@ -1,3 +1,4 @@
+import numpy as np
 from core import base_environment
 from gym import spaces
 
@@ -43,12 +44,15 @@ class GymWrapper(object):
     """
     return self.env.observation()[self._obsKey]
 
+
   def _reset(self):
     self.env.reset()
     return self._observation()
 
+
   def reset(self):
     return self._reset()
+
 
   def _step(self, action):
     assert type(action) == np.ndarray, 'action must be a nd-array'
@@ -58,17 +62,18 @@ class GymWrapper(object):
     done   = False
     return obs, reward, done, dict(reward=reward)
 
+
   def step(self, action):
     return self._step(action)
 
-  def _get_obs(self):
-    return self.env.observation()[self._obsKey]
- 
+
   def viewer_setup(self):
     self.env._renderer_setup() 
 
+
   def render(self):
     return self._render()
+
 
   def _render(self):
     return self.env.render() 

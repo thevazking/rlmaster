@@ -139,7 +139,7 @@ class BaseMujoco(BaseSimulator):
     Args:
       geomName: name of the geom
     """
-    gid = self.geom_name2id()
+    gid = self.geom_name2id(geomName)
     return self.model.data.geom_xpos[gid]
 
 
