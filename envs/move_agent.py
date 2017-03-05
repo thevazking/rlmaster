@@ -28,6 +28,12 @@ class DiscreteActionFour(BaseDiscreteAction):
   def num_actions(self):
     return 4
 
+  def minval(self):
+    return 0
+
+  def maxval(self):
+    return 3
+
   @overrides
   def process(self, action):
     assert len(action) == 1
@@ -205,7 +211,7 @@ class RewardSimple(BaseRewarder):
  
 
 def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimple',
-                    actType='DiscreteActionFour',
+                    actType='DiscreteActionFour', max_episode_length=100,
                     initPrms={}, obsPrms={}, rewPrms={}, actPrms={}):
 
   sim     = MoveTeleportSimulator()
@@ -213,5 +219,6 @@ def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimpl
   obsObj  = globals()[obsName](sim, obsPrms)
   rewObj  = globals()[rewName](sim, rewPrms)
   actObj  = globals()[actType](actPrms)
-  env     = BaseEnvironment(sim, initObj, obsObj, rewObj, actObj)
+  env     = BaseEnvironment(sim, initObj, obsObj, rewObj, actObj, 
+              params={'max_episode_length':max_episode_length})
   return env

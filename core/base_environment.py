@@ -195,6 +195,8 @@ class BaseEnvironment(object):
     self._rewarder    = rewarder
     self._action_processor = action_processor
     self.params       = copy.deepcopy(BASE_ENV_PARAMS)
+    for k in params.keys():
+      assert k in BASE_ENV_PARAMS.keys(), '%s not found' % k
     self.params.update(params)
     self.stepCount    = 0
     self.reset()
