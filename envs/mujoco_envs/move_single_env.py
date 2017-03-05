@@ -55,8 +55,8 @@ class ObsIm(BaseObservation):
   @overrides
   def ndim(self):
     dim = {}
-    dim['im'] = (self.simulator.simParam['image_height'],
-                 self.simulator.simParam['image_width'], 
+    dim['im'] = (self.simulator.simParams['image_height'],
+                 self.simulator.simParams['image_width'], 
                  3)
     return dim
 

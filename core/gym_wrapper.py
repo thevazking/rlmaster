@@ -4,7 +4,8 @@ from gym import spaces
 class GymWrapper(object):
   def __init__(self, env):
     self._env = env
-    self.action_space = spaces.Discrete(self.env.num_actions())
+    #self.action_space = spaces.Discrete(self.env.num_actions())
+    self.action_space = spaces.Box(low=-1, high=1, shape=(2,))
     obsNdim = self.env.observation_ndim()   
     obsKeys = obsNdim.keys()
     assert len(obsKeys) == 1, 'gym only supports one observation type'
