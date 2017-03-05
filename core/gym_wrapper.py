@@ -10,9 +10,11 @@ class GymWrapper(object):
     else:
       assert isinstance(self.env.action_processor,
                         base_environment.BaseContinuousAction)
-      self.action_space = spaces.Box(low=-1, high=1, 
+      self.action_space = spaces.Box(
+                      low  = env.action_processor.minval(), 
+                      high = env.action_processor.maxval(), 
                       shape=(env.action_processor.action_dim(), 
-                             env.action_processor.num_actions))
+                             env.action_processor.num_actions()))
     obsNdim = self.env.observation_ndim()   
     obsKeys = obsNdim.keys()
     assert len(obsKeys) == 1, 'gym only supports one observation type'
@@ -35,9 +37,15 @@ class GymWrapper(object):
   def _n_actions(self):
     return self.env.action_dim()
 
+  def _observation(self):
+    """
+    Gym environment only supports one kind of observation
+    """
+    return self.env.observation()[self._obsKey]
+
   def _reset(self):
     self.env.reset()
-    return self.env.observation()
+    return self._observation()
 
   def reset(self):
     return self._reset()
@@ -45,7 +53,7 @@ class GymWrapper(object):
   def _step(self, action):
     assert type(action) == np.ndarray, 'action must be a nd-array'
     self.env.step(action)
-    obs    = self.env.observation()
+    obs    = self._observation()
     reward = self.env.reward()
     done   = False
     return obs, reward, done, dict(reward=reward)
@@ -60,7 +68,7 @@ class GymWrapper(object):
     self.env._renderer_setup() 
 
   def render(self):
-    return self.render()
+    return self._render()
 
   def _render(self):
     return self.env.render() 
