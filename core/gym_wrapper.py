@@ -4,8 +4,15 @@ from gym import spaces
 class GymWrapper(object):
   def __init__(self, env):
     self._env = env
-    #self.action_space = spaces.Discrete(self.env.num_actions())
-    self.action_space = spaces.Box(low=-1, high=1, shape=(2,))
+    if isinstance(self.env.action_processor, 
+                  base_environment.BaseDiscreteAction):
+      self.action_space = spaces.Discrete(self.env.num_actions())
+    else:
+      assert isinstance(self.env.action_processor,
+                        base_environment.BaseContinuousAction)
+      self.action_space = spaces.Box(low=-1, high=1, 
+                      shape=(env.action_processor.action_dim(), 
+                             env.action_processor.num_actions))
     obsNdim = self.env.observation_ndim()   
     obsKeys = obsNdim.keys()
     assert len(obsKeys) == 1, 'gym only supports one observation type'
@@ -33,7 +40,7 @@ class GymWrapper(object):
     return self.env.observation()
 
   def reset(self):
-    return self.reset()
+    return self._reset()
 
   def _step(self, action):
     assert type(action) == np.ndarray, 'action must be a nd-array'

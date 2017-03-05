@@ -1,3 +1,4 @@
+import abc
 import copy
 import numpy as np
 import os
@@ -73,9 +74,11 @@ class BaseRewarder(BaseObject):
 ##
 #BaseAction class
 class BaseAction(object):
+  __metaclass__ = abc.ABCMeta
   def __init__(self, prms={}):
     self._prms = prms
-    
+   
+  @abc.abstractmethod 
   def action_dim(self):
     """
     Returns:
@@ -84,8 +87,8 @@ class BaseAction(object):
           if there are 3 joint angles, action_dim=3
       
     """
-    raise NotImplementedError
 
+  @abc.abstractmethod
   def num_actions(self):
     """
     Returns:
@@ -93,9 +96,27 @@ class BaseAction(object):
       eg: for 1 out N discrete action, num_actions=3
           if there are 3 joint angles, num_actions=1
     """
-    raise NotImplementedError
+
+  @abc.abstractmethod
+  def minval(self):
+    """
+    Returns:
+      for discrete_action: the value of lowest action
+      for continous_action: the minimum value of action
+                            in any dimension
+    """
+
+  @abc.abstractmethod
+  def maxval(self):
+    """
+    Returns:
+      for discrete_action: the value of highest action
+      for continous_action: the maximum value of action
+                            in any dimension
+    """
 
   #Process the action as needed
+  @abc.abstractmethod
   def process(self, action):
     """
     Args:
@@ -112,6 +133,8 @@ class BaseDiscreteAction(BaseAction):
 class BaseContinuousAction(BaseAction):
   def num_actions(self):
     return 1
+
+  
   
 
 ##
@@ -156,6 +179,7 @@ class BaseSimulator(object):
 
   def get_image(self):
     raise NotImplementedError
+
 
 BASE_ENV_PARAMS = {
   'action_repeat': 1,

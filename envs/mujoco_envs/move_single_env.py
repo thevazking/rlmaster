@@ -109,6 +109,12 @@ class DiscreteActionFour(BaseDiscreteAction):
     ctrl = np.array(ctrl).reshape((2,))
     return ctrl 
  
+  def minval(self):
+    return 0
+
+  def maxval(self):
+    return 4
+
 
 class ContinuousAction(BaseContinuousAction):
   @overrides
@@ -118,6 +124,12 @@ class ContinuousAction(BaseContinuousAction):
   @overrides
   def process(self, action):
     return action  
+
+  def minval(self):
+    return -1.
+
+  def maxval(self):
+    return 1.
 
  
 class MoveTeleportMujocoSimulator(BaseMujoco):
