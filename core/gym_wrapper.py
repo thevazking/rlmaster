@@ -2,6 +2,7 @@ import numpy as np
 from core import base_environment
 from gym import spaces
 
+#class GymWrapper(gym.Wrapper):
 class GymWrapper(object):
   def __init__(self, env):
     self._env = env
