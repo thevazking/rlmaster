@@ -8,24 +8,35 @@ from pyhelper_fns import check_utils
 
 class BaseObject(object):
   def __init__(self, simulator, prms={}):
-    self._simulator  = simulator
-    self._prms = prms
-
-  @property
-  def simulator(self):
-    return self._simulator
+    updatedPrms      = self.defaultPrms
+    updatedPrms.update(prms)
+    self._prms = updatedPrms
 
   @property
   def prms(self):
     return self._prms
 
+  @property
+  def defaultPrms(self):
+    return {}
+
   def get(self):
     raise NotImplementedError
-    
 
+
+class BaseObjectWithSim(BaseObject):
+  def __init__(self, simulator, prms={}):
+    super(BaseObjectWithSim, self).__init__(prms)
+    self._simulator  = simulator
+
+  @property
+  def simulator(self):
+    return self._simulator
+
+    
 ##
 #Base class for defining the observation that the agent receives
-class BaseObservation(BaseObject):
+class BaseObservation(BaseObjectWithSim):
   def spec(self):
     """
     Returns the observation in the format
@@ -52,15 +63,20 @@ class BaseObservation(BaseObject):
 ##
 #Base class for defining how the environment should be initialized at every
 #episode
-class BaseInitializer(BaseObject):
+class BaseInitializer(BaseObjectWithSim):
   def __init__(self, simulator, prms={}):
     super(BaseInitializer, self).__init__(simulator, prms=prms)
-    seed = self.prms['randomSeed'] if hasattr(self.prms, 'randomSeed') else 3
-    self._random = np.random.RandomState(seed)
+    self._random = np.random.RandomState(self.prms['randomSeed'])
 
   @property
   def random(self):
     return self._random
+
+  @property
+  def defaultPrms(self):
+    defPrms = {}
+    defPrms['randomSeed'] = 3
+    return defPrms
 
   def sample_env_init(self):
     raise NotImplementedError
@@ -68,7 +84,7 @@ class BaseInitializer(BaseObject):
 
 ##
 #Base class for defining reward functions.
-class BaseRewarder(BaseObject):
+class BaseRewarder(BaseObjectWithSim):
   pass 
 
 ##
@@ -139,14 +155,20 @@ class BaseContinuousAction(BaseAction):
 
 ##
 #Base class for defining environment simulation.
-class BaseSimulator(object):
+class BaseSimulator(BaseObject):
   """
   Setup the object that simulates the environment (for eg: the physics engine.)
   """
-  def __init__(self, simParams=None, isRender=False):
-    self._simParams = simParams
+  def __init__(self, prms={}, isRender=False):
+    super(BaseSimulator, self).__init__(prms)
     self._isRender  = isRender 
     
+  @property
+  def defaultPrms(self):
+    defPrms = super(BaseSimulator, self).defaultPrms
+    defPrms['actionRepeat'] = 4
+    return defPrms
+
   @property
   def isRender(self):
     return self._isRender
@@ -157,7 +179,7 @@ class BaseSimulator(object):
 
   @property
   def simParams(self):
-    return copy.deepcopy(self._simParams)
+    return copy.deepcopy(self.prms)
 
   def _setup_world(self):
     pass
@@ -330,5 +352,21 @@ class BaseEnvironment(object):
             self.step_by_n(actionRepeat, ctrl)
       self.render()
 
+
+def visualize_random_exploration(env, mode='randSample', 
+              episodeLength=500):
+  anim = vu.MyAnimation(None)
+  if isinstance(env, BaseEnvironment):
+    for e in range(10):
+      _  = env.reset()
+      for i in range(episodeLength):
+        if mode == 'randSample':
+          env.step(0.6 * np.random.randn(env.simulator.num_actuators(),))
+        else:
+          env.step(0.4 * np.zeros(env.simulator.num_actuators(),))
+        im = env.simulator.get_image(cName='main')
+        anim._display(im)
+  else:
+    raise Exception('Invalid argument type {0}'.format(type(env)))
 
 

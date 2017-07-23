@@ -170,7 +170,7 @@ def get_environment(initName='InitRandom', obsName='ObsIm', rewName='RewardSimpl
   simParams['xmlfile'] = osp.join(MODULE_PATH, 'xmls/move_single.xml')
   simParams['image_width'] = imSz
   simParams['image_height'] = imSz
-  sim     = MoveTeleportMujocoSimulator(simParams=simParams, isRender=True)
+  sim     = MoveTeleportMujocoSimulator(prms=simParams, isRender=True)
   initObj = globals()[initName](sim, initPrms)
   obsObj  = globals()[obsName](sim, obsPrms)
   rewObj  = globals()[rewName](sim, rewPrms)
