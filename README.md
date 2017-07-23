@@ -41,6 +41,15 @@ from core import gym_wrapper
 env = move_agent.get_environment()
 gymEnv = gym_wwapper.GymWrapper(env)
 ```
+
+## Notes on setting environment with mujoco
+
+If there is a static body that doesnot move, then set it's `body_pos`. If there is a body that can move
+then set it's `qpos`.
+
+
+
+
                    
             
 
