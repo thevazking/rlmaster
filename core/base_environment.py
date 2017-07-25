@@ -7,7 +7,7 @@ from pyhelper_fns import vis_utils as vu
 from pyhelper_fns import check_utils
 
 class BaseObject(object):
-  def __init__(self, simulator, prms={}):
+  def __init__(self, prms={}):
     updatedPrms      = self.defaultPrms
     updatedPrms.update(prms)
     self._prms = updatedPrms
@@ -160,7 +160,7 @@ class BaseSimulator(BaseObject):
   Setup the object that simulates the environment (for eg: the physics engine.)
   """
   def __init__(self, prms={}, isRender=False):
-    super(BaseSimulator, self).__init__(prms)
+    super(BaseSimulator, self).__init__(prms=prms)
     self._isRender  = isRender 
     
   @property

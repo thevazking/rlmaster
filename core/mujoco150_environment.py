@@ -117,7 +117,10 @@ class BaseMujoco150(BaseSimulator):
 
 
   def geom_name2id(self, geomName):
-    return self.model.geom_names.index(geomName)
+    return self.sim.model.geom_names.index(geomName)
+
+  def body_name2id(self, bodyName):
+    return self.sim.model.body_names.index(bodyName)    
 
 
   def geom_xpos(self, geomName):
@@ -130,11 +133,21 @@ class BaseMujoco150(BaseSimulator):
     return self.model.data.geom_xpos[gid]
 
 
+  def body_xpos(self, bodyName):
+    """
+    position of a body in global-coordinate frame
+    Args:
+      bodyName: name of the body
+    """
+    bid = self.body_name2id(bodyName)
+    return self.sim.data.body_xpos[bid]
+
+
   def set_body_pos(self, bodyName, pos):
     """
       Set the position of bodyName to pos
     """
-    bid  = self.sim.model.body_names.index(bodyName)
+    bid  = self.body_name2id(bodyName)
     bpos = self.sim.model.body_pos.copy()
     assert pos.shape == (3,) or pos.shape==(1,3)
     bpos[bid,:] = pos
@@ -142,7 +155,7 @@ class BaseMujoco150(BaseSimulator):
     self.sim.forward()
  
   def set_body_pos2D(self, bodyName, pos):
-    bid  = self.sim.model.body_names.index(bodyName)
+    bid  = self.body_name2id(bodyName)
     bpos = self.sim.model.body_pos.copy()
     assert pos.shape == (2,) or pos.shape==(1,2)
     bpos[bid,0:2] = pos
