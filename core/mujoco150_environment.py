@@ -159,7 +159,7 @@ class BaseMujoco150(BaseSimulator):
     bpos = self.sim.model.body_pos.copy()
     assert pos.shape == (2,) or pos.shape==(1,2)
     bpos[bid,0:2] = pos
-    self.sim.model.body_pos = bpos
+    self.sim.model.body_pos[...] = bpos
     self.sim.forward()
 
   def set_joint_pos(self, jntName, pos):
