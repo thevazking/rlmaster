@@ -354,7 +354,7 @@ class BaseEnvironment(object):
 
 
 def visualize_random_exploration(env, mode='randSample', 
-              episodeLength=500):
+              numEpisodes=10, episodeLength=500):
   anim = vu.MyAnimation(None)
   if isinstance(env, BaseEnvironment):
     for e in range(10):
@@ -368,5 +368,24 @@ def visualize_random_exploration(env, mode='randSample',
         anim._display(im)
   else:
     raise Exception('Invalid argument type {0}'.format(type(env)))
+
+
+def save_random_exploration_video(env, mode='randSample', 
+              numEpisodes=10, episodeLength=500):
+  vidName = 'random_exploration.mp4'
+  vid     = vu.VideoMaker()
+  if isinstance(env, BaseEnvironment):
+    for e in range(numEpisodes):
+      _  = env.reset()
+      for i in range(episodeLength):
+        if mode == 'randSample':
+          env.step(0.6 * np.random.randn(env.simulator.num_actuators(),))
+        else:
+          env.step(0.4 * np.zeros(env.simulator.num_actuators(),))
+        im = env.simulator.get_image(cName='main')
+        vid.save_frame(im)
+  else:
+    raise Exception('Invalid argument type {0}'.format(type(env)))
+  vid.compile_video()
 
 
