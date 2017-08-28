@@ -15,7 +15,7 @@ def sample_random_action(dims, mode='randSample'):
     act = 0.4 * np.zeros(dims,)
   return act
 
-
+ 
 def visualize_random_exploration(env, mode='randSample', 
               numEpisodes=10, episodeLength=500):
   anim = vu.MyAnimation(None)
