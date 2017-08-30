@@ -300,6 +300,15 @@ class BaseEnvironment(object):
     """ 
     return self.observer.ndim()
 
+  def touch_ndim(self):
+    """
+    Dimensionality of touch sensing if present
+    """
+    sTypes = self.simulator.model.sensor_type
+    if sTypes is None:
+      return 0
+    else:
+      return np.sum(self.simulator.model.sensor_type == 0)
 
   def reward(self):
     """
@@ -325,6 +334,24 @@ class BaseEnvironment(object):
   def step_nd_render(self, ctrl, N=1):
     self.step_by_n(ctrl, N)
     self.render() 
+
+
+  def interactive_step(self, str2action, actionRepeat=None):
+    """
+    Take a single interactive step
+    """
+    try:
+      ip = raw_input()
+    except:
+      ip = input()
+    ctrl = str2action(ip)
+    if ctrl is None:
+      return
+    else:
+      if actionRepeat is None:
+        self.step(ctrl)
+      else:
+        self.step_by_n(actionRepeat, ctrl)
 
 
   def interactive(self, str2action, actionRepeat=None):
