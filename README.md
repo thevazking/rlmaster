@@ -24,7 +24,7 @@ An environment is defined by:
 ### Interactive Mode
 To run environments in interactive mode, a function mapping the keyboard inputs into commands supplied to the agent must be defined. This function is typically called, `str2action` in `rlmaster` repository. The environment can be run in interactive mode in the following way:
 
-```
+```python
 from envs.mujoco_envs import move_single_env
 env = move_single_env.get_environment(actType='ContinuousAction', imSz=480)
 env.interactive(move_single_env.str2action)
@@ -35,11 +35,24 @@ You can use the commands, `w, s, d, a` to move the agent and `q` to quit the int
 
 ##Environment in openAI gym format
 
-```
+```python
 from envs import move_agent
 from core import gym_wrapper
 env = move_agent.get_environment()
 gymEnv = gym_wwapper.GymWrapper(env)
+```
+
+## Visualizing the enviornment
+```python
+import env_utils
+#Create a visualization object
+envVis = env_utils.BaseEnvVis(env) #See source for more options
+#Visualize random exploration of the environment
+envVis.vis_exploration()
+#Visualize how the env looks on reset
+envVis.vis_resets()
+#Visualize "touch" along with random exploration
+envVis.vis_exploration_touch()
 ```
 
 ## Notes on setting environment with mujoco
