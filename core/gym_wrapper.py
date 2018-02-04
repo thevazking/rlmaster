@@ -19,6 +19,7 @@ class GymWrapper(object):
                              env.action_processor.num_actions()))
     obsNdim = self.env.observation_ndim()   
     obsKeys = obsNdim.keys()
+    obsKeys = list(obsKeys) # python3 compatibility
     assert len(obsKeys) == 1, 'gym only supports one observation type'
     self._obsKey = obsKeys[0]
     self.observation_space = spaces.Box(low=0, high=255, shape=obsNdim[obsKeys[0]])
