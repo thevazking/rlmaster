@@ -1,6 +1,7 @@
 import numpy as np
 from core import base_environment
 from gym import spaces
+from gym.utils import seeding
 
 #class GymWrapper(gym.Wrapper):
 class GymWrapper(object):
@@ -23,6 +24,15 @@ class GymWrapper(object):
     assert len(obsKeys) == 1, 'gym only supports one observation type'
     self._obsKey = obsKeys[0]
     self.observation_space = spaces.Box(low=0, high=255, shape=obsNdim[obsKeys[0]])
+
+  # New gym compatibility
+  metadata = {'render.modes': []}
+  reward_range = (-np.inf, np.inf)
+  spec = None
+
+  @property
+  def unwrapped(self):
+      return self
 
   @property
   def frameskip(self):
@@ -64,6 +74,10 @@ class GymWrapper(object):
     done   = False
     return obs, reward, done, dict(reward=reward)
 
+  # new gym compatibility
+  def _seed(self):
+      self.np_random, seed = seeding.np_random(seed)
+      return [seed]
 
   def step(self, action):
     return self._step(action)
@@ -76,7 +90,7 @@ class GymWrapper(object):
   def render(self):
     return self._render()
 
-
-  def _render(self):
+  # mode is hack, doesn't actually do anything
+  def _render(self, mode, close=False):
     return self.env.render() 
   
