@@ -210,12 +210,13 @@ BASE_ENV_PARAMS = {
 
 class BaseEnvironment(object):
   def __init__(self, sim, initializer, observer, rewarder,
-               action_processor, params={}):
+               action_processor, info_observer=None, params={}):
     self._simulator   = sim
     self._initializer = initializer
     self._observer    = observer
     self._rewarder    = rewarder
     self._action_processor = action_processor
+    self._info_observer = info_observer
     self.params       = copy.deepcopy(BASE_ENV_PARAMS)
     for k in params.keys():
       assert k in BASE_ENV_PARAMS.keys(), '%s not found' % k
@@ -243,6 +244,9 @@ class BaseEnvironment(object):
   def action_processor(self):
     return self._action_processor 
 
+  @property
+  def info_observer(self):
+    return self._info_observer 
 
   def action_dim(self):
     """
@@ -293,6 +297,14 @@ class BaseEnvironment(object):
     """ 
     return self.observer.observation()
 
+  def info_observation(self):
+    """
+    Observe the environment's info state
+    """ 
+    if self.info_observer:
+        return self.info_observer.observation()
+    else:
+        return None
 
   def observation_ndim(self):
     """

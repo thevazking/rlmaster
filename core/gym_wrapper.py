@@ -56,6 +56,11 @@ class GymWrapper(object):
     """
     return self.env.observation()[self._obsKey]
 
+  def _info_observation(self):
+    """
+    Returns the env_info, if the base_env has an info_observer
+    """
+    return self.env.info_observation()
 
   def _reset(self):
     self.env.reset()
