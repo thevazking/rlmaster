@@ -39,9 +39,9 @@ class BaseMujoco150(BaseSimulator):
   """
   def __init__(self, **kwargs):
     super(BaseMujoco150, self).__init__(**kwargs)
+    self.camPrms = {}
     if self.prms['xmlfile'] is not None:
       self._setup_world()
-    self.camPrms = {}
 
   @property
   def defaultPrms(self):
